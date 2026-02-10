@@ -35,6 +35,11 @@ Confirm that the policy name for DynamoDB streams to Lambda is:
 
 And the Lambda role in IAM is named `lambda-role`.
 
+**Note**: If the name has changed, update the following files accordingly:
+
+- `init-scripts/create-stream-policy.sh`
+- `init-scripts/create-iam-role.sh`
+
 ### 3. Verify DynamoDB Table Model
 
 Check that the data model in the DynamoDB table matches the one defined in `init-scripts/create-dynamodb-table.sh`. The current specification is:
@@ -86,3 +91,67 @@ docker-compose up --build [-d]
 ```
 
 That will execute the initialization scripts and start the local development environment. The `-d` flag can be added to run the containers in detached mode.
+
+## Setup Theorim Project
+
+Change the `RoleRepository.js` file in the Theorim project so the following code is changed:
+
+```javascript
+// 1
+const policyArn = process.env.$APP_LAMBDASTREAMPOLICYARN; // wrong
+const policyArn = 'the one created and logged in the create-stream-policy.sh script'; // correct
+// 2
+const streamArn = process.env.$APP_DDBTABLESTREAMARN; // wrong
+const streamArn = 'the stream ARN of the DynamoDB table created in the create-dynamodb-table.sh script'; // correct
+```
+
+**Note**: These changes are for local development only. Do not commit them to the repository; revert them before pushing to avoid affecting production configurations.
+
+### setup Clients
+
+Search for 'localstack' in the Theorim project and uncomment the code that sets up the clients to connect to LocalStack instead of AWS. This will allow the project to interact with the local development environment instead of the actual AWS services.
+
+Example
+
+```javascript
+// before
+
+const client = new DynamoDBClient({
+	region: process.env.$APP_REGION,
+	maxAttempts: 3,
+	retryMode: "adaptive",
+	// // localstack
+	// region: "us-east-1",
+	// endpoint: "http://localhost:4566",
+	// credentials: {
+	//     accessKeyId: "test",
+	//     secretAccessKey: "test",
+	// },
+});
+
+// after
+const client = new DynamoDBClient({
+	// region: process.env.$APP_REGION,
+	// maxAttempts: 3,
+	// retryMode: 'adaptive'
+	// localstack
+	region: "us-east-1",
+	endpoint: "http://localhost:4566",
+	credentials: {
+		accessKeyId: "test",
+		secretAccessKey: "test",
+	},
+});
+```
+
+## Tools
+
+### Redeploy Lambda Functions
+
+To redeploy Lambda functions after making changes, use the following command:
+
+```powershell
+.\redeploy.ps1
+```
+
+This script will package the Lambda functions and update them in AWS without needing to restart the entire Docker environment.
