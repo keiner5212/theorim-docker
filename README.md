@@ -94,7 +94,9 @@ That will execute the initialization scripts and start the local development env
 
 ## Setup Theorim Project
 
-Change the `RoleRepository.js` file in the Theorim project so the following code is changed:
+### 
+
+Change the `LambdaRepository.js` file in the Theorim project so the following code is changed:
 
 ```javascript
 // 1
@@ -104,8 +106,6 @@ const policyArn = 'the one created and logged in the create-stream-policy.sh scr
 const streamArn = process.env.$APP_DDBTABLESTREAMARN; // wrong
 const streamArn = 'the stream ARN of the DynamoDB table created in the create-dynamodb-table.sh script'; // correct
 ```
-
-**Note**: These changes are for local development only. Do not commit them to the repository; revert them before pushing to avoid affecting production configurations.
 
 ### setup Clients
 
@@ -143,6 +143,8 @@ const client = new DynamoDBClient({
 	},
 });
 ```
+
+**Note**: These changes are for local development only. Do not commit them to the repository; revert them before pushing to avoid affecting production configurations.
 
 ## Tools
 
