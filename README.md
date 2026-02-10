@@ -158,7 +158,7 @@ To redeploy Lambda functions after making changes, use the following command:
 
 This script will package the Lambda functions and update them in AWS without needing to restart the entire Docker environment.
 
-if you want this script to automatically redeploy the Lambda functions whenever you make changes to the code, you can set up a file watcher that triggers the redeploy script on file changes. Here's examples using `nodemon` and `node --watch` in single commands without configuration files:
+if you want this script to automatically redeploy the Lambda functions whenever you make changes to the code, you can set up a file watcher that triggers the redeploy script on file changes. Here's an example using `nodemon`:
 
 #### Using nodemon
 1. Install nodemon globally if you haven't already:
@@ -169,13 +169,5 @@ npm install -g nodemon
 2. Run the following command to watch for changes and redeploy automatically:
 
 ```bash
-nodemon --watch functions/ --ext js,json --exec "powershell -File .\redeploy.ps1"
-```
-
-#### Using node --watch
-1. Ensure you have Node.js version 18.11.0 or later.
-2. Run the following command to watch for changes and redeploy automatically:
-
-```bash
-node --watch --watch-path=functions/ -e "const { spawn } = require('child_process'); spawn('powershell', ['-File', './redeploy.ps1'], { stdio: 'inherit' });"
+nodemon --watch functions/ --ext js,json --ignore "functions/**/node_modules/**" --ignore "functions/**/*.zip" --ignore "functions/**/package-lock.json" --exec "powershell -ExecutionPolicy Bypass -File .\redeploy.ps1"
 ```
