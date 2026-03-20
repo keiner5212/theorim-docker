@@ -27,7 +27,27 @@ Ensure that the parameter `/THEORIM-i-DEV-THEORIM-XYZ/ddbtable` matches the tabl
 - `init-scripts/create-dynamodb-table.sh`
 - `init-scripts/create-stream-policy.sh`
 
-### 2. Verify Policy and Role
+### 2. Verify S3 Bucket Name
+
+Confirm that the S3 bucket name in `init-scripts/create-s3-bucket.sh` matches the one provisioned in the AWS environment:
+
+- `theorim-i-dev-theorim-xyz-appbucket-ob1j8un9oboq`
+
+**Warning**: This bucket name is environment-specific and changes between deployments (e.g., when the CloudFormation stack is recreated). If the name has changed, update the `BUCKET_NAME` variable in `init-scripts/create-s3-bucket.sh` accordingly.
+
+To retrieve the current bucket name from AWS:
+
+```bash
+aws ssm get-parameters-by-path --path "/THEORIM-i-DEV-THEORIM-XYZ" --region us-east-1
+```
+
+Or list existing buckets matching the pattern:
+
+```bash
+aws s3api list-buckets --query "Buckets[?contains(Name,'appbucket')].Name" --output text
+```
+
+### 3. Verify Policy and Role
 
 Confirm that the policy name for DynamoDB streams to Lambda is:
 
@@ -40,7 +60,7 @@ And the Lambda role in IAM is named `lambda-role`.
 - `init-scripts/create-stream-policy.sh`
 - `init-scripts/create-iam-role.sh`
 
-### 3. Verify DynamoDB Table Model
+### 4. Verify DynamoDB Table Model
 
 Check that the data model in the DynamoDB table matches the one defined in `init-scripts/create-dynamodb-table.sh`. The current specification is:
 
@@ -69,7 +89,7 @@ CREATE_OUTPUT=$(awslocal dynamodb create-table \
 
 This defines the key schema, attribute definitions, and global secondary indexes for the table.
 
-### 4. Lambda Functions Structure
+### 5. Lambda Functions Structure
 
 Lambda functions must be placed in a folder named `functions` at the root of the project. Each function should have its own subfolder containing:
 

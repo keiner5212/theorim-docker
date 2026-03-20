@@ -12,8 +12,24 @@ if (-not (Test-Path $FunctionsDir)) {
 
 $Directories = Get-ChildItem -Path $FunctionsDir -Directory
 
+# Default list of functions to skip. Override with SKIP_FUNCTIONS env var (comma/space-separated).
+# Leaving this empty means all detected functions will be deployed.
+$defaultSkip = @("cms-detector", "hello-world", "send-email", "goodbye-world", "contact-finder")
+$skipEnv = $env:SKIP_FUNCTIONS
+if ($skipEnv) {
+    $SkipFunctions = $skipEnv -split '[, ]+' | Where-Object { $_ }
+} else {
+    $SkipFunctions = $defaultSkip
+}
+
 foreach ($Dir in $Directories) {
     $FunctionName = $Dir.Name
+
+    if ($SkipFunctions -contains $FunctionName) {
+        Write-Host "[SKIP] Skipping function: $FunctionName" -ForegroundColor DarkYellow
+        continue
+    }
+
     Write-Host "[INFO] Processing function: $FunctionName" -ForegroundColor Yellow
 
     Push-Location "$FunctionsDir\$FunctionName"

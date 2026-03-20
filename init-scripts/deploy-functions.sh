@@ -8,9 +8,38 @@ echo "[INFO] Scanning functions directory: /opt/code/functions"
 
 cd /opt/code/functions
 
+# Default list of functions to skip (space-separated). Override with SKIP_FUNCTIONS env var (comma/space-separated).
+# Leaving this empty means all detected functions will be deployed.
+DEFAULT_SKIP=("cms-detector" "hello-world" "send-email" "goodbye-world" "contact-finder")
+    
+# Build skip list from environment or default.
+SKIP_FUNCTIONS_ENV="${SKIP_FUNCTIONS:-}"
+if [ -n "$SKIP_FUNCTIONS_ENV" ]; then
+  # Normalize commas into spaces
+  SKIP_LIST=( ${SKIP_FUNCTIONS_ENV//,/ } )
+else
+  SKIP_LIST=( "${DEFAULT_SKIP[@]}" )
+fi
+
+should_skip() {
+  local func="$1"
+  for skip in "${SKIP_LIST[@]}"; do
+    if [ "$skip" = "$func" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+npm install -g @aws-sdk/util-dynamodb
+
 for dir in */ ; do
     if [ -d "$dir" ]; then
         FUNCTION_NAME="${dir%/}"
+        if should_skip "$FUNCTION_NAME"; then
+            echo "[SKIP] Skipping function: $FUNCTION_NAME"
+            continue
+        fi
         echo "[INFO] Processing function: $FUNCTION_NAME"
 
         cd "$FUNCTION_NAME"
